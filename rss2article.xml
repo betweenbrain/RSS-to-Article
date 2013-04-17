@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<install version="2.5" type="plugin" group="system" method="upgrade">
+	<name>System - Simple RSS to Article Plugin</name>
+	<author>Matt Thomas</author>
+	<creationDate>January 3, 2012</creationDate>
+	<copyright>2013 Matt Thomas</copyright>
+	<license>GPL 2.0</license>
+	<authorEmail></authorEmail>
+	<authorUrl>http://www.betweenbrain.com</authorUrl>
+	<version>0.1</version>
+	<description>Pseduo-cron functionality based on the FeedGator pseudo-cron plugin by Matt Faulds of Trafalgar Design (UK) Ltd</description>
+	<files>
+		<filename plugin="rss2article">rss2article.php</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">en-GB.plg_system_RSS2ARTICLE.ini</language>
+	</languages>
+	<params>
+		<param name="interval"
+		       type="text"
+		       default="5"
+		       label="PLG_RSS2ARTICLE_INTERVAL_LABEL"
+		       description="PLG_RSS2ARTICLE_INTERVAL_DESC"/>
+		<param name="configuration"
+		       type="textarea"
+		       default=""
+		       label="PLG_RSS2ARTICLE_FEED_LABEL"
+		       description="PLG_RSS2ARTICLE_FEED_DESC"
+		       rows="10"
+		       cols="50"/>
+	</params>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="interval"
+				       type="text"
+				       default="5"
+				       label="PLG_RSS2ARTICLE_INTERVAL_LABEL"
+				       description="PLG_RSS2ARTICLE_INTERVAL_DESC"/>
+			</fieldset>
+		</fields>
+	</config>
+</install>
