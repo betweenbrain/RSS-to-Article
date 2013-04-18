@@ -13,12 +13,12 @@
 		<filename plugin="rss2article">rss2article.php</filename>
 	</files>
 	<languages>
-		<language tag="en-GB">en-GB.plg_system_RSS2ARTICLE.ini</language>
+		<language tag="en-GB">en-GB.plg_system_rss2article.ini</language>
 	</languages>
 	<params>
 		<param name="interval"
 		       type="text"
-		       default="5"
+		       default="1440"
 		       label="PLG_RSS2ARTICLE_INTERVAL_LABEL"
 		       description="PLG_RSS2ARTICLE_INTERVAL_DESC"/>
 		<param name="configuration"
