@@ -25,6 +25,15 @@ class plgSystemRss2article extends JPlugin {
 	}
 
 	function onAfterRoute() {
+
+		if ($this->pseudoCron()) {
+			$this->feedMe();
+			$this->logEvent();
+		}
+	}
+
+	function pseudoCron() {
+
 		$app = JFactory::getApplication();
 
 		if ($app->isSite()) {
@@ -83,45 +92,66 @@ class plgSystemRss2article extends JPlugin {
 					$db->query();
 				}
 
-				$curl = curl_init();
-
-				curl_setopt_array($curl, Array(
-					CURLOPT_URL            => 'http://blogs.guggenheim.org/map/feed/',
-					CURLOPT_USERAGENT      => 'spider',
-					CURLOPT_TIMEOUT        => 120,
-					CURLOPT_CONNECTTIMEOUT => 30,
-					CURLOPT_RETURNTRANSFER => TRUE,
-					CURLOPT_ENCODING       => 'UTF-8'
-				));
-
-				$data = curl_exec($curl);
-
-				curl_close($curl);
-
-				$xml = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
-
-				foreach ($xml->channel->item as $item) {
-					$creator = $item->children('dc', TRUE);
-
-					$db   = JFactory::getDBO();
-					$date = JFactory::getDate($item->pubDate);
-
-					$data                   = new stdClass();
-					$data->id               = NULL;
-					$data->title            = $db->getEscaped($item->title);
-					$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
-					$data->state            = '1';
-					$data->sectionid        = '1';
-					$data->catid            = '1';
-					$data->created          = $date->toMySQL();
-					$data->created_by_alias = $db->getEscaped($creator);
-					$data->state            = '1';
-
-					$db->insertObject('#__content', $data, 'id');
-				}
+				return TRUE;
 			}
 		}
 
 		return FALSE;
+	}
+
+	function feedMe() {
+		$curl = curl_init();
+
+		curl_setopt_array($curl, Array(
+			CURLOPT_URL            => 'http://blogs.guggenheim.org/map/feed/',
+			CURLOPT_USERAGENT      => 'spider',
+			CURLOPT_TIMEOUT        => 120,
+			CURLOPT_CONNECTTIMEOUT => 30,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_ENCODING       => 'UTF-8'
+		));
+
+		$data = curl_exec($curl);
+
+		curl_close($curl);
+
+		$xml = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
+
+		foreach ($xml->channel->item as $item) {
+			$creator = $item->children('dc', TRUE);
+
+			$db   = JFactory::getDBO();
+			$date = JFactory::getDate($item->pubDate);
+
+			$data                   = new stdClass();
+			$data->id               = NULL;
+			$data->title            = $db->getEscaped($item->title);
+			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
+			$data->state            = '1';
+			$data->sectionid        = '1';
+			$data->catid            = '1';
+			$data->created          = $date->toMySQL();
+			$data->created_by_alias = $db->getEscaped($creator);
+			$data->state            = '1';
+
+			$db->insertObject('#__content', $data, 'id');
+		}
+	}
+
+	function logEvent() {
+
+		$db    = JFactory::getDbo();
+		$query = "CREATE TABLE IF NOT EXISTS " . $db->nameQuote('#__rss2article') . "
+			(" . $db->nameQuote('last_run') . "
+			datetime NOT NULL DEFAULT '0000-00-00 00:00:00')
+			ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+		$db->setQuery($query);
+		$db->query();
+
+		$data           = new stdClass();
+		$now            = JFactory::getDate()->toMySQL();
+		$data->last_run = $now;
+		$db->insertObject('#__rss2article', $data);
 	}
 }
