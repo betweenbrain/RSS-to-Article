@@ -21,13 +21,19 @@ class plgSystemRss2article extends JPlugin {
 
 		$this->plugin   =& JPluginHelper::getPlugin('system', 'rss2article');
 		$this->params   = new JParameter($this->plugin->params);
-		$this->interval = $this->params->get('interval');
+		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 	}
 
 	function onAfterRoute() {
 
 		if ($this->pseudoCron()) {
-			$this->feedMe();
+			$feeds = $this->parseParams();
+
+			foreach ($feeds as $feed) {
+				$xml = $this->getFeed($feed->url);
+				$this->saveItems($xml, $feed->catId, $feed->secId);
+			}
+
 			$this->logEvent();
 		}
 	}
@@ -99,11 +105,11 @@ class plgSystemRss2article extends JPlugin {
 		return FALSE;
 	}
 
-	function feedMe() {
+	function getFeed($url) {
 		$curl = curl_init();
 
 		curl_setopt_array($curl, Array(
-			CURLOPT_URL            => 'http://blogs.guggenheim.org/map/feed/',
+			CURLOPT_URL            => $url,
 			CURLOPT_USERAGENT      => 'spider',
 			CURLOPT_TIMEOUT        => 120,
 			CURLOPT_CONNECTTIMEOUT => 30,
@@ -117,24 +123,86 @@ class plgSystemRss2article extends JPlugin {
 
 		$xml = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
 
+		return $xml;
+	}
+
+	function parseParams() {
+		$configuration = $this->params->get('configuration');
+
+		// Procdeed only if data has been entered and stored
+		if ($configuration) {
+
+			// Normalize input by removing spaces and new lines.
+			$configuration = preg_replace('/\n*\s*/', '', $configuration);
+
+			// Convert string into an array.
+			$configurations = explode(';', rtrim($configuration, ';'));
+
+			// Initialize emptpy object.
+			$feed = new stdClass();
+
+			foreach ($configurations as $key => $value) {
+				// Explode string into parts.
+				$parts = explode(',', $value);
+
+				// First part is assumed to be a URL.
+				// TODO: Do we need to test this?
+				$feed->$key->url = $parts[0];
+
+				// Check for third argument, is none, it's a category.
+				if (!$parts[2]) {
+					$feed->$key->catId = $parts[1];
+				} else {
+					// If there is a third argument, we have a section and category.
+					$feed->$key->secId = $parts[1];
+					$feed->$key->catId = $parts[2];
+				}
+			}
+
+			if ($feed) {
+				return $feed;
+			}
+		}
+
+		return FALSE;
+	}
+
+	function saveItems($xml, $catId, $secId = NULL) {
+
+		$db    = JFactory::getDBO();
+		$query = "SELECT title
+				  FROM #__content
+				  WHERE catid = $catId
+				  AND state = 1";
+		$db->setQuery($query);
+		$articles = $db->loadObjectList();
+
 		foreach ($xml->channel->item as $item) {
-			$creator = $item->children('dc', TRUE);
 
-			$db   = JFactory::getDBO();
-			$date = JFactory::getDate($item->pubDate);
+			foreach ($articles as $article) {
+				if ($article->title == $item->title) {
+					$duplicate = TRUE;
+				}
+			}
 
+			$creator                = $item->children('dc', TRUE);
+			$date                   = JFactory::getDate($item->pubDate);
 			$data                   = new stdClass();
 			$data->id               = NULL;
 			$data->title            = $db->getEscaped($item->title);
+			$data->alias            = JFilterOutput::stringURLSafe($item->title);
 			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
-			$data->state            = '1';
-			$data->sectionid        = '1';
-			$data->catid            = '1';
+			$data->catid            = $catId;
 			$data->created          = $date->toMySQL();
 			$data->created_by_alias = $db->getEscaped($creator);
 			$data->state            = '1';
+			if ($secId) {
+				$data->sectionid = $secId;
+			}
 
-			$db->insertObject('#__content', $data, 'id');
+			if ($duplicate != TRUE) {
+				$db->insertObject('#__content', $data, 'id');
+			}
 		}
 	}
 
