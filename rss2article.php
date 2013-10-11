@@ -49,8 +49,6 @@ class plgSystemRss2article extends JPlugin {
 
 			if ($diff > $this->interval) {
 
-				$version = new JVersion();
-				define('J_VERSION', $version->getShortVersion());
 				jimport('joomla.registry.format');
 				$this->params->set('last_run', $now);
 
