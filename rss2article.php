@@ -19,7 +19,9 @@ class plgSystemRss2article extends JPlugin {
 	function plgSystemRss2article(&$subject, $params) {
 		parent::__construct($subject, $params);
 
-		$this->plugin   =& JPluginHelper::getPlugin('system', 'rss2article');
+		$this->app      = JFactory::getApplication();
+		$this->db       = JFactory::getDbo();
+		$this->plugin   = JPluginHelper::getPlugin('system', 'rss2article');
 		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 	}
 
@@ -39,9 +41,7 @@ class plgSystemRss2article extends JPlugin {
 
 	function pseudoCron() {
 
-		$app = JFactory::getApplication();
-
-		if ($app->isSite()) {
+		if ($this->app->isSite()) {
 			$now  = JFactory::getDate();
 			$now  = $now->toUnix();
 			$last = $this->params->get('last_run');
@@ -52,7 +52,6 @@ class plgSystemRss2article extends JPlugin {
 				$version = new JVersion();
 				define('J_VERSION', $version->getShortVersion());
 				jimport('joomla.registry.format');
-				$db = JFactory::getDbo();
 				$this->params->set('last_run', $now);
 
 				$handler = JRegistryFormat::getInstance('json');
@@ -62,14 +61,14 @@ class plgSystemRss2article extends JPlugin {
 				$params = $handler->objectToString($params, array());
 				// Update plugin parameters in database
 				$query = 'UPDATE #__extensions' .
-					' SET params=' . $db->Quote($params) .
-					' WHERE element = ' . $db->Quote('rss2article') .
-					' AND folder = ' . $db->Quote('system') .
+					' SET params=' . $this->db->Quote($params) .
+					' WHERE element = ' . $this->db->Quote('rss2article') .
+					' AND folder = ' . $this->db->Quote('system') .
 					' AND enabled >= 1' .
-					' AND type =' . $db->Quote('plugin') .
+					' AND type =' . $this->db->Quote('plugin') .
 					' AND state >= 0';
-				$db->setQuery($query);
-				$db->query();
+				$this->db->setQuery($query);
+				$this->db->query();
 
 				return TRUE;
 			}
@@ -142,13 +141,12 @@ class plgSystemRss2article extends JPlugin {
 
 	function saveItems($xml, $catId, $secId = NULL) {
 
-		$db    = JFactory::getDBO();
 		$query = "SELECT title
 				  FROM #__content
 				  WHERE catid = $catId
 				  AND state = 1";
-		$db->setQuery($query);
-		$articles = $db->loadObjectList();
+		$this->db->setQuery($query);
+		$articles = $this->db->loadObjectList();
 
 		foreach ($xml->channel->item as $item) {
 
@@ -162,37 +160,36 @@ class plgSystemRss2article extends JPlugin {
 			$date                   = JFactory::getDate($item->pubDate);
 			$data                   = new stdClass();
 			$data->id               = NULL;
-			$data->title            = $db->getEscaped($item->title);
+			$data->title            = $this->db->getEscaped($item->title);
 			$data->alias            = JFilterOutput::stringURLSafe($item->title);
 			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
 			$data->catid            = $catId;
 			$data->created          = $date->toMySQL();
-			$data->created_by_alias = $db->getEscaped($creator);
+			$data->created_by_alias = $this->db->getEscaped($creator);
 			$data->state            = '1';
 			if ($secId) {
 				$data->sectionid = $secId;
 			}
 
 			if ($duplicate != TRUE) {
-				$db->insertObject('#__content', $data, 'id');
+				$this->db->insertObject('#__content', $data, 'id');
 			}
 		}
 	}
 
 	function logEvent() {
 
-		$db    = JFactory::getDbo();
-		$query = "CREATE TABLE IF NOT EXISTS " . $db->nameQuote('#__rss2article') . "
-			(" . $db->nameQuote('last_run') . "
+		$query = "CREATE TABLE IF NOT EXISTS " . $this->db->nameQuote('#__rss2article') . "
+			(" . $this->db->nameQuote('last_run') . "
 			datetime NOT NULL DEFAULT '0000-00-00 00:00:00')
 			ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
-		$db->setQuery($query);
-		$db->query();
+		$this->db->setQuery($query);
+		$this->db->query();
 
 		$data           = new stdClass();
 		$now            = JFactory::getDate()->toMySQL();
 		$data->last_run = $now;
-		$db->insertObject('#__rss2article', $data);
+		$this->db->insertObject('#__rss2article', $data);
 	}
 }
