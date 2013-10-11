@@ -55,47 +55,21 @@ class plgSystemRss2article extends JPlugin {
 				$db = JFactory::getDbo();
 				$this->params->set('last_run', $now);
 
-				if (J_VERSION >= 1.6) {
-					$handler = JRegistryFormat::getInstance('json');
-					$params  = new JObject();
-					$params->set('interval', $this->params->get('interval', 5));
-					$params->set('last_run', $now);
-					$params = $handler->objectToString($params, array());
-					// Update plugin parameters in database
-					$query = 'UPDATE #__extensions' .
-						' SET params=' . $db->Quote($params) .
-						' WHERE element = ' . $db->Quote('rss2article') .
-						' AND folder = ' . $db->Quote('system') .
-						' AND enabled >= 1' .
-						' AND type =' . $db->Quote('plugin') .
-						' AND state >= 0';
-					$db->setQuery($query);
-					$db->query();
-				} else {
-					// Retrieve saved parameters from database
-					$query = ' SELECT params' .
-						' FROM #__plugins' .
-						' WHERE element = ' . $db->Quote('rss2article') . '';
-					$db->setQuery($query);
-					$params = $db->loadResult();
-					// Check if last_run parameter has been previously saved.
-					if (preg_match('/last_run=/', $params)) {
-						// If it has been, update it.
-						$params = preg_replace('/last_run=([0-9]*)/', 'last_run=' . $now, $params);
-					} else {
-						// Add last_run parameter to databse if it has not been recored before.
-						// TODO: Currently adding last_run to beginning of param string due to extra "\n" when using $params .=
-						$params = 'last_run=' . $now . "\n" . $params;
-					}
-					// Update plugin parameters in database
-					$query = 'UPDATE #__plugins' .
-						' SET params=' . $db->Quote($params) .
-						' WHERE element = ' . $db->Quote('rss2article') .
-						' AND folder = ' . $db->Quote('system') .
-						' AND published >= 1';
-					$db->setQuery($query);
-					$db->query();
-				}
+				$handler = JRegistryFormat::getInstance('json');
+				$params  = new JObject();
+				$params->set('interval', $this->params->get('interval', 5));
+				$params->set('last_run', $now);
+				$params = $handler->objectToString($params, array());
+				// Update plugin parameters in database
+				$query = 'UPDATE #__extensions' .
+					' SET params=' . $db->Quote($params) .
+					' WHERE element = ' . $db->Quote('rss2article') .
+					' AND folder = ' . $db->Quote('system') .
+					' AND enabled >= 1' .
+					' AND type =' . $db->Quote('plugin') .
+					' AND state >= 0';
+				$db->setQuery($query);
+				$db->query();
 
 				return TRUE;
 			}
