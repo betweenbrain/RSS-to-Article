@@ -57,7 +57,21 @@ class plgSystemRss2article extends JPlugin {
 				$params->set('interval', $this->params->get('interval', 5));
 				$params->set('last_run', $now);
 				$params = $handler->objectToString($params, array());
-				// Update plugin parameters in database
+
+				/*
+				$query = $this->db->getQuery(TRUE);
+				$query
+					->update($this->db->quoteName('#__extensions'))
+					->set($this->db->quoteName('params'), $this->db->Quote($params))
+					->where($this->db->quoteName('element') . ' = ' . $this->db->Quote('rss2article') .
+					' AND folder = ' . $this->db->Quote('system') .
+					' AND enabled >= 1' .
+					' AND type =' . $this->db->Quote('plugin') .
+					' AND state >= 0');
+				$this->db->setQuery($query);
+				$this->db->query();
+				*/
+
 				$query = 'UPDATE #__extensions' .
 					' SET params=' . $this->db->Quote($params) .
 					' WHERE element = ' . $this->db->Quote('rss2article') .
@@ -177,10 +191,10 @@ class plgSystemRss2article extends JPlugin {
 
 	function logEvent() {
 
-		$query = "CREATE TABLE IF NOT EXISTS " . $this->db->nameQuote('#__rss2article') . "
-			(" . $this->db->nameQuote('last_run') . "
-			datetime NOT NULL DEFAULT '0000-00-00 00:00:00')
-			ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+		$query = 'CREATE TABLE IF NOT EXISTS ' . $this->db->quoteName('#__rss2article') . ' (
+		  ' . $this->db->quoteName('last_run') .
+		  ' datetime NOT NULL DEFAULT "0000-00-00 00:00:00"
+		) COMMENT=""';
 
 		$this->db->setQuery($query);
 		$this->db->query();
