@@ -126,6 +126,9 @@ class plgSystemRss2article extends JPlugin {
 			$feed = new stdClass();
 
 			foreach ($configurations as $key => $value) {
+
+				$feed->$key = new stdClass();
+
 				// Explode string into parts.
 				$parts = explode(',', $value);
 
