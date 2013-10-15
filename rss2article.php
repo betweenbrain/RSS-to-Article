@@ -134,13 +134,7 @@ class plgSystemRss2article extends JPlugin {
 				$feed->$key->url = $parts[0];
 
 				// Check for third argument, is none, it's a category.
-				if (!$parts[2]) {
-					$feed->$key->catId = $parts[1];
-				} else {
-					// If there is a third argument, we have a section and category.
-					$feed->$key->secId = $parts[1];
-					$feed->$key->catId = $parts[2];
-				}
+				$feed->$key->catId = $parts[1];
 			}
 
 			if ($feed) {
@@ -190,8 +184,8 @@ class plgSystemRss2article extends JPlugin {
 
 		$query = 'CREATE TABLE IF NOT EXISTS ' . $this->db->quoteName('#__rss2article') . ' (
 		  ' . $this->db->quoteName('last_run') .
-		  ' datetime NOT NULL DEFAULT "0000-00-00 00:00:00"
-		) COMMENT=""';
+			' datetime NOT NULL DEFAULT "0000-00-00 00:00:00"
+			) COMMENT=""';
 
 		$this->db->setQuery($query);
 		$this->db->query();
