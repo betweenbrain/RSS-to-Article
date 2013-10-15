@@ -122,7 +122,7 @@ class plgSystemRss2article extends JPlugin {
 			// Convert string into an array.
 			$configurations = explode(';', rtrim($configuration, ';'));
 
-			// Initialize emptpy object.
+			// Initialize empty object.
 			$feed = new stdClass();
 
 			foreach ($configurations as $key => $value) {
