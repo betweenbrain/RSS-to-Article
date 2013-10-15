@@ -113,7 +113,7 @@ class plgSystemRss2article extends JPlugin {
 	function parseParams() {
 		$configuration = $this->params->get('configuration');
 
-		// Procdeed only if data has been entered and stored
+		// Proceed only if data has been entered and stored
 		if ($configuration) {
 
 			// Normalize input by removing spaces and new lines.
