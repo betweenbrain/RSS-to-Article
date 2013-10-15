@@ -19,7 +19,7 @@ class plgSystemRss2article extends JPlugin {
 	function plgSystemRss2article(&$subject, $params) {
 		parent::__construct($subject, $params);
 
-		$this->plugin   =& JPluginHelper::getPlugin('system', 'rss2article');
+		$this->plugin   = JPluginHelper::getPlugin('system', 'rss2article');
 		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 	}
 
