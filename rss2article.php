@@ -170,7 +170,7 @@ class plgSystemRss2article extends JPlugin {
 			$data->alias            = JFilterOutput::stringURLSafe($item->title);
 			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
 			$data->catid            = $catId;
-			$data->created          = $date->toMySQL();
+			$data->created          = $date->toSQL();
 			$data->created_by_alias = $this->db->getEscaped($creator);
 			$data->state            = '1';
 
@@ -191,7 +191,7 @@ class plgSystemRss2article extends JPlugin {
 		$this->db->query();
 
 		$data           = new stdClass();
-		$now            = JFactory::getDate()->toMySQL();
+		$now            = JFactory::getDate()->toSQL();
 		$data->last_run = $now;
 		$this->db->insertObject('#__rss2article', $data);
 	}
