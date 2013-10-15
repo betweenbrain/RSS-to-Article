@@ -32,7 +32,7 @@ class plgSystemRss2article extends JPlugin {
 
 			foreach ($feeds as $feed) {
 				$xml = $this->getFeed($feed->url);
-				$this->saveItems($xml, $feed->catId, $feed->secId);
+				$this->saveItems($xml, $feed->catId);
 			}
 
 			$this->logEvent();
@@ -151,7 +151,7 @@ class plgSystemRss2article extends JPlugin {
 		return FALSE;
 	}
 
-	function saveItems($xml, $catId, $secId = NULL) {
+	function saveItems($xml, $catId) {
 
 		$query = "SELECT title
 				  FROM #__content
@@ -179,9 +179,6 @@ class plgSystemRss2article extends JPlugin {
 			$data->created          = $date->toMySQL();
 			$data->created_by_alias = $this->db->getEscaped($creator);
 			$data->state            = '1';
-			if ($secId) {
-				$data->sectionid = $secId;
-			}
 
 			if ($duplicate != TRUE) {
 				$this->db->insertObject('#__content', $data, 'id');
