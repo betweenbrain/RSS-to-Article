@@ -185,9 +185,10 @@ class plgSystemRss2article extends JPlugin {
 
 	function logEvent() {
 
-		$query = 'CREATE TABLE IF NOT EXISTS ' . $this->db->quoteName('#__rss2article') . ' (
-		  ' . $this->db->quoteName('last_run') .
-			' datetime NOT NULL DEFAULT "0000-00-00 00:00:00"
+		$query = 'CREATE TABLE IF NOT EXISTS' . $this->db->quoteName('#__rss2article') . ' (
+			' . $this->db->quoteName('id') . ' INT NOT NULL AUTO_INCREMENT,
+			' . $this->db->quoteName('last_run') . ' datetime NOT NULL DEFAULT "0000-00-00 00:00:00",
+			PRIMARY KEY (ID)
 			) COMMENT=""';
 
 		$this->db->setQuery($query);
