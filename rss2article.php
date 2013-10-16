@@ -123,13 +123,6 @@ class plgSystemRss2article extends JPlugin {
 
 	function saveItems($xml, $catId) {
 
-		/*
-		$query = "SELECT title
-				  FROM #__content
-				  WHERE catid = $catId
-				  AND state = 1";
-		*/
-
 		$query = $this->db->getQuery(TRUE);
 
 		$query
