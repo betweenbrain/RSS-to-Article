@@ -54,6 +54,11 @@ class plgsystemrss2articleInstallerScript {
 
 		$this->db->setQuery($query);
 		$this->db->query();
+
+		$data           = new stdClass();
+		$now            = JFactory::getDate()->toSQL();
+		$data->last_run = $now;
+		$this->db->insertObject('#__rss2article', $data);
 	}
 
 	public function install(JAdapterInstance $adapter) {
