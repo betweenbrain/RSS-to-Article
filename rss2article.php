@@ -159,6 +159,8 @@ class plgSystemRss2article extends JPlugin {
 
 		foreach ($xml->channel->item as $item) {
 
+			$duplicate = FALSE;
+
 			foreach ($articles as $article) {
 				if ($article->title == $item->title) {
 					$duplicate = TRUE;
@@ -167,19 +169,20 @@ class plgSystemRss2article extends JPlugin {
 
 			$creator                = $item->children('dc', TRUE);
 			$date                   = JFactory::getDate($item->pubDate);
+
 			$data                   = new stdClass();
-			$data->id               = NULL;
-			$data->title            = $this->db->getEscaped($item->title);
+			$data->title            = (string) $item->title[0];
 			$data->alias            = JFilterOutput::stringURLSafe($item->title);
 			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
 			$data->catid            = $catId;
 			$data->created          = $date->toSQL();
-			$data->created_by_alias = $this->db->getEscaped($creator);
+			$data->created_by_alias = (string) $creator;
 			$data->state            = '1';
 
-			if ($duplicate != TRUE) {
-				$this->db->insertObject('#__content', $data, 'id');
+			if(!$duplicate) {
+				$this->db->insertObject('#__content', $data);
 			}
+
 		}
 	}
 
