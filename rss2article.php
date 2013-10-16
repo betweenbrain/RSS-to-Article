@@ -146,20 +146,42 @@ class plgSystemRss2article extends JPlugin {
 				}
 			}
 
-			$creator = $item->children('dc', TRUE);
-			$date    = JFactory::getDate($item->pubDate);
-
-			$data                   = new stdClass();
-			$data->title            = (string) $item->title[0];
-			$data->alias            = JFilterOutput::stringURLSafe($item->title);
-			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
-			$data->catid            = $catId;
-			$data->created          = $date->toSQL();
-			$data->created_by_alias = (string) $creator;
-			$data->state            = '1';
-
 			if (!$duplicate) {
-				$this->db->insertObject('#__content', $data);
+
+				$creator = $item->children('dc', TRUE);
+				$date    = JFactory::getDate($item->pubDate);
+
+				// JTableArticle is not autoloaded prior to 3.0
+				if (version_compare(JVERSION, '3.0', 'lt')) {
+					JTable::addIncludePath(JPATH_PLATFORM . 'joomla/database/table');
+				}
+
+				// Initialize a new article
+				$article                   = JTable::getInstance('content');
+				$article->title            = (string) $item->title[0];
+				$article->alias            = JFilterOutput::stringURLSafe($item->title);
+				$article->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
+				$article->catid            = $catId;
+				$article->created          = $date->toSQL();
+				$article->created_by_alias = (string) $creator;
+				$article->state            = 1;
+				$article->access           = 1;
+				$article->metadata         = '{"page_title":"","author":"","robots":""}';
+				$article->language         = '*';
+
+				// Check to make sure our data is valid
+				if (!$article->check()) {
+					JError::raiseNotice(500, $article->getError());
+
+					return FALSE;
+				}
+
+				// Now store the article
+				if (!$article->store(TRUE)) {
+					JError::raiseNotice(500, $article->getError());
+
+					return FALSE;
+				}
 			}
 		}
 	}
