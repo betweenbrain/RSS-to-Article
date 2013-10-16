@@ -45,6 +45,17 @@ class plgSystemRss2article extends JPlugin {
 			$now  = JFactory::getDate();
 			$now  = $now->toUnix();
 			$last = $this->params->get('last_run');
+
+			/*
+			$query = $this->db->getQuery(true);
+
+			$query
+			    ->select($this->db->quoteName('last_run'))
+			    ->from($this->db->quoteName('#__rss2article'))
+			    ->where($this->db->quoteName('profile_key') . ' LIKE '. $this->db->quote('\'custom.%\''))
+			    ->order('ordering ASC');
+			*/
+
 			$diff = $now - $last;
 
 			if ($diff > $this->interval) {
