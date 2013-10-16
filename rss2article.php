@@ -27,7 +27,17 @@ class plgSystemRss2article extends JPlugin {
 
 	function onAfterRoute() {
 
+		$query = 'CREATE TABLE IF NOT EXISTS' . $this->db->quoteName('#__rss2article') . ' (
+			' . $this->db->quoteName('id') . ' INT NOT NULL AUTO_INCREMENT,
+			' . $this->db->quoteName('last_run') . ' datetime NOT NULL DEFAULT "0000-00-00 00:00:00",
+			PRIMARY KEY (ID)
+			) COMMENT=""';
+
+		$this->db->setQuery($query);
+		$this->db->query();
+
 		if ($this->pseudoCron()) {
+
 			$feeds = $this->parseParams();
 
 			foreach ($feeds as $feed) {
@@ -42,56 +52,25 @@ class plgSystemRss2article extends JPlugin {
 	function pseudoCron() {
 
 		if ($this->app->isSite()) {
-			$now  = JFactory::getDate();
-			$now  = $now->toUnix();
-			$last = $this->params->get('last_run');
+			$now = JFactory::getDate()->toUnix();
 
-			/*
-			$query = $this->db->getQuery(true);
+			$query = $this->db->getQuery(TRUE);
 
 			$query
-			    ->select($this->db->quoteName('last_run'))
-			    ->from($this->db->quoteName('#__rss2article'))
-			    ->where($this->db->quoteName('profile_key') . ' LIKE '. $this->db->quote('\'custom.%\''))
-			    ->order('ordering ASC');
-			*/
+				->select($this->db->quoteName('last_run'))
+				->from($this->db->quoteName('#__rss2article'))
+				->setLimit('1')
+				->order($this->db->quoteName('id') . ' DESC');
+
+			$this->db->setQuery($query);
+
+			$last_run = $this->db->loadResult();
+
+			$last = JFactory::getDate($last_run)->toUnix();
 
 			$diff = $now - $last;
 
 			if ($diff > $this->interval) {
-
-				jimport('joomla.registry.format');
-				$this->params->set('last_run', $now);
-
-				$handler = JRegistryFormat::getInstance('json');
-				$params  = new JObject();
-				$params->set('interval', $this->params->get('interval', 5));
-				$params->set('last_run', $now);
-				$params = $handler->objectToString($params, array());
-
-				/*
-				$query = $this->db->getQuery(TRUE);
-				$query
-					->update($this->db->quoteName('#__extensions'))
-					->set($this->db->quoteName('params'), $this->db->Quote($params))
-					->where($this->db->quoteName('element') . ' = ' . $this->db->Quote('rss2article') .
-					' AND folder = ' . $this->db->Quote('system') .
-					' AND enabled >= 1' .
-					' AND type =' . $this->db->Quote('plugin') .
-					' AND state >= 0');
-				$this->db->setQuery($query);
-				$this->db->query();
-				*/
-
-				$query = 'UPDATE #__extensions' .
-					' SET params=' . $this->db->Quote($params) .
-					' WHERE element = ' . $this->db->Quote('rss2article') .
-					' AND folder = ' . $this->db->Quote('system') .
-					' AND enabled >= 1' .
-					' AND type =' . $this->db->Quote('plugin') .
-					' AND state >= 0';
-				$this->db->setQuery($query);
-				$this->db->query();
 
 				return TRUE;
 			}
@@ -122,32 +101,24 @@ class plgSystemRss2article extends JPlugin {
 	}
 
 	function parseParams() {
+
 		$configuration = $this->params->get('configuration');
 
-		// Proceed only if data has been entered and stored
 		if ($configuration) {
 
-			// Normalize input by removing spaces and new lines.
 			$configuration = preg_replace('/\n*\s*/', '', $configuration);
 
-			// Convert string into an array.
 			$configurations = explode(';', rtrim($configuration, ';'));
 
-			// Initialize empty object.
 			$feed = new stdClass();
 
 			foreach ($configurations as $key => $value) {
 
 				$feed->$key = new stdClass();
 
-				// Explode string into parts.
 				$parts = explode(',', $value);
 
-				// First part is assumed to be a URL.
-				// TODO: Do we need to test this?
-				$feed->$key->url = $parts[0];
-
-				// Check for third argument, is none, it's a category.
+				$feed->$key->url   = $parts[0];
 				$feed->$key->catId = $parts[1];
 			}
 
@@ -161,11 +132,24 @@ class plgSystemRss2article extends JPlugin {
 
 	function saveItems($xml, $catId) {
 
+		/*
 		$query = "SELECT title
 				  FROM #__content
 				  WHERE catid = $catId
 				  AND state = 1";
+		*/
+
+		$query = $this->db->getQuery(TRUE);
+
+		$query
+			->select($this->db->quoteName('title'))
+			->from($this->db->quoteName('#__content'))
+			->where(
+				$this->db->quoteName('catid') . ' = ' . $catId . ' AND ' .
+				$this->db->quoteName('state') . ' = 1');
+
 		$this->db->setQuery($query);
+
 		$articles = $this->db->loadObjectList();
 
 		foreach ($xml->channel->item as $item) {
@@ -178,8 +162,8 @@ class plgSystemRss2article extends JPlugin {
 				}
 			}
 
-			$creator                = $item->children('dc', TRUE);
-			$date                   = JFactory::getDate($item->pubDate);
+			$creator = $item->children('dc', TRUE);
+			$date    = JFactory::getDate($item->pubDate);
 
 			$data                   = new stdClass();
 			$data->title            = (string) $item->title[0];
@@ -190,23 +174,13 @@ class plgSystemRss2article extends JPlugin {
 			$data->created_by_alias = (string) $creator;
 			$data->state            = '1';
 
-			if(!$duplicate) {
+			if (!$duplicate) {
 				$this->db->insertObject('#__content', $data);
 			}
-
 		}
 	}
 
 	function logEvent() {
-
-		$query = 'CREATE TABLE IF NOT EXISTS' . $this->db->quoteName('#__rss2article') . ' (
-			' . $this->db->quoteName('id') . ' INT NOT NULL AUTO_INCREMENT,
-			' . $this->db->quoteName('last_run') . ' datetime NOT NULL DEFAULT "0000-00-00 00:00:00",
-			PRIMARY KEY (ID)
-			) COMMENT=""';
-
-		$this->db->setQuery($query);
-		$this->db->query();
 
 		$data           = new stdClass();
 		$now            = JFactory::getDate()->toSQL();
