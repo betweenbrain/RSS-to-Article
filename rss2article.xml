@@ -11,9 +11,7 @@
 	<authorEmail></authorEmail>
 	<authorUrl>http://www.betweenbrain.com</authorUrl>
 	<version>0.1</version>
-	<description>Pseduo-cron functionality based on the FeedGator pseudo-cron plugin by Matt Faulds of Trafalgar Design
-		(UK) Ltd
-	</description>
+	<description>A simple plugin that imports and converts RSS feeds to articles.</description>
 
 	<files>
 		<filename plugin="rss2article">rss2article.php</filename>

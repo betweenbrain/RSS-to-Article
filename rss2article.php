@@ -156,7 +156,7 @@ class plgSystemRss2article extends JPlugin {
 					JTable::addIncludePath(JPATH_PLATFORM . 'joomla/database/table');
 				}
 
-				// Initialize a new article
+				// Initialize a new article object
 				$article                   = JTable::getInstance('content');
 				$article->title            = (string) $item->title[0];
 				$article->alias            = JFilterOutput::stringURLSafe($item->title);
