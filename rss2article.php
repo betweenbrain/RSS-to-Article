@@ -50,8 +50,8 @@ class plgSystemRss2article extends JPlugin {
 			$query
 				->select($this->db->quoteName('last_run'))
 				->from($this->db->quoteName('#__rss2article'))
-				->setLimit('1')
-				->order($this->db->quoteName('id') . ' DESC');
+				->order($this->db->quoteName('id') . ' DESC')
+				->setLimit('1');;
 
 			$this->db->setQuery($query);
 
