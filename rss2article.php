@@ -169,16 +169,20 @@ class plgSystemRss2article extends JPlugin {
 				$article->metadata         = '{"page_title":"","author":"","robots":""}';
 				$article->language         = '*';
 
-				// Check to make sure our data is valid
-				if (!$article->check()) {
-					JError::raiseNotice(500, $article->getError());
+				try {
+					$article->check();
+				} catch (RuntimeException $e) {
+
+					JFactory::getApplication()->enqueueMessage($e->getMessage(), 'warning');
 
 					return FALSE;
 				}
 
-				// Now store the article
-				if (!$article->store(TRUE)) {
-					JError::raiseNotice(500, $article->getError());
+				try {
+					$article->store(TRUE);
+				} catch (RuntimeException $e) {
+
+					JFactory::getApplication()->enqueueMessage($e->getMessage(), 'warning');
 
 					return FALSE;
 				}
