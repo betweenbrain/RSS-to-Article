@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5"
+           type="plugin"
+           group="system"
+           method="upgrade">
+	<name>System - Simple RSS to Article Plugin</name>
+	<author>Matt Thomas</author>
+	<creationDate>January 3, 2012</creationDate>
+	<copyright>2013 Matt Thomas</copyright>
+	<license>GPL 2.0</license>
+	<authorEmail></authorEmail>
+	<authorUrl>http://www.betweenbrain.com</authorUrl>
+	<version>0.1</version>
+	<description>A simple plugin that imports and converts RSS feeds to articles.</description>
+
+	<files>
+		<filename plugin="rss2article">rss2article.php</filename>
+	</files>
+
+	<scriptfile>script.php</scriptfile>
+
+	<languages>
+		<language tag="en-GB">en-GB.plg_system_rss2article.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="interval"
+				       type="text"
+				       default="5"
+				       label="PLG_RSS2ARTICLE_INTERVAL_LABEL"
+				       description="PLG_RSS2ARTICLE_INTERVAL_DESC"/>
+				<field name="configuration"
+				       type="textarea"
+				       default=""
+				       label="PLG_RSS2ARTICLE_FEED_LABEL"
+				       description="PLG_RSS2ARTICLE_FEED_DESC"
+				       rows="10"
+				       cols="50"/>
+			</fieldset>
+		</fields>
+	</config>
+</extension>
