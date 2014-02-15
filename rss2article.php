@@ -14,9 +14,11 @@
 jimport('joomla.plugin.plugin');
 jimport('joomla.html.parameter');
 
-class plgSystemRss2article extends JPlugin {
+class plgSystemRss2article extends JPlugin
+{
 
-	function plgSystemRss2article(&$subject, $params) {
+	function plgSystemRss2article(&$subject, $params)
+	{
 		parent::__construct($subject, $params);
 
 		$this->plugin   =& JPluginHelper::getPlugin('system', 'rss2article');
@@ -24,12 +26,15 @@ class plgSystemRss2article extends JPlugin {
 		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 	}
 
-	function onAfterRoute() {
+	function onAfterRoute()
+	{
 
-		if ($this->pseudoCron()) {
+		if ($this->pseudoCron())
+		{
 			$feeds = $this->parseParams();
 
-			foreach ($feeds as $feed) {
+			foreach ($feeds as $feed)
+			{
 				$xml = $this->getFeed($feed->url);
 				$this->saveItems($xml, $feed->catId, $feed->secId);
 			}
@@ -38,17 +43,20 @@ class plgSystemRss2article extends JPlugin {
 		}
 	}
 
-	function pseudoCron() {
+	function pseudoCron()
+	{
 
 		$app = JFactory::getApplication();
 
-		if ($app->isSite()) {
+		if ($app->isSite())
+		{
 			$now  = JFactory::getDate();
 			$now  = $now->toUnix();
 			$last = $this->params->get('last_run');
 			$diff = $now - $last;
 
-			if ($diff > $this->interval) {
+			if ($diff > $this->interval)
+			{
 
 				$version = new JVersion();
 				define('J_VERSION', $version->getShortVersion());
@@ -56,7 +64,8 @@ class plgSystemRss2article extends JPlugin {
 				$db = JFactory::getDbo();
 				$this->params->set('last_run', $now);
 
-				if (J_VERSION >= 1.6) {
+				if (J_VERSION >= 1.6)
+				{
 					$handler = JRegistryFormat::getInstance('json');
 					$params  = new JObject();
 					$params->set('interval', $this->params->get('interval', 5));
@@ -72,7 +81,9 @@ class plgSystemRss2article extends JPlugin {
 						' AND state >= 0';
 					$db->setQuery($query);
 					$db->query();
-				} else {
+				}
+				else
+				{
 					// Retrieve saved parameters from database
 					$query = ' SELECT params' .
 						' FROM #__plugins' .
@@ -80,10 +91,13 @@ class plgSystemRss2article extends JPlugin {
 					$db->setQuery($query);
 					$params = $db->loadResult();
 					// Check if last_run parameter has been previously saved.
-					if (preg_match('/last_run=/', $params)) {
+					if (preg_match('/last_run=/', $params))
+					{
 						// If it has been, update it.
 						$params = preg_replace('/last_run=([0-9]*)/', 'last_run=' . $now, $params);
-					} else {
+					}
+					else
+					{
 						// Add last_run parameter to databse if it has not been recored before.
 						// TODO: Currently adding last_run to beginning of param string due to extra "\n" when using $params .=
 						$params = 'last_run=' . $now . "\n" . $params;
@@ -98,14 +112,15 @@ class plgSystemRss2article extends JPlugin {
 					$db->query();
 				}
 
-				return TRUE;
+				return true;
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	function getFeed($url) {
+	function getFeed($url)
+	{
 		$curl = curl_init();
 
 		curl_setopt_array($curl, Array(
@@ -113,7 +128,7 @@ class plgSystemRss2article extends JPlugin {
 			CURLOPT_USERAGENT      => 'spider',
 			CURLOPT_TIMEOUT        => 120,
 			CURLOPT_CONNECTTIMEOUT => 30,
-			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_ENCODING       => 'UTF-8'
 		));
 
@@ -126,11 +141,13 @@ class plgSystemRss2article extends JPlugin {
 		return $xml;
 	}
 
-	function parseParams() {
+	function parseParams()
+	{
 		$configuration = $this->params->get('configuration');
 
 		// Procdeed only if data has been entered and stored
-		if ($configuration) {
+		if ($configuration)
+		{
 
 			// Normalize input by removing spaces and new lines.
 			$configuration = preg_replace('/\n*\s*/', '', $configuration);
@@ -141,7 +158,8 @@ class plgSystemRss2article extends JPlugin {
 			// Initialize emptpy object.
 			$feed = new stdClass();
 
-			foreach ($configurations as $key => $value) {
+			foreach ($configurations as $key => $value)
+			{
 				// Explode string into parts.
 				$parts = explode(',', $value);
 
@@ -150,24 +168,29 @@ class plgSystemRss2article extends JPlugin {
 				$feed->$key->url = $parts[0];
 
 				// Check for third argument, is none, it's a category.
-				if (!$parts[2]) {
+				if (!$parts[2])
+				{
 					$feed->$key->catId = $parts[1];
-				} else {
+				}
+				else
+				{
 					// If there is a third argument, we have a section and category.
 					$feed->$key->secId = $parts[1];
 					$feed->$key->catId = $parts[2];
 				}
 			}
 
-			if ($feed) {
+			if ($feed)
+			{
 				return $feed;
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	function saveItems($xml, $catId, $secId = NULL) {
+	function saveItems($xml, $catId, $secId = null)
+	{
 
 		$db    = JFactory::getDBO();
 		$query = "SELECT title
@@ -177,18 +200,21 @@ class plgSystemRss2article extends JPlugin {
 		$db->setQuery($query);
 		$articles = $db->loadObjectList();
 
-		foreach ($xml->channel->item as $item) {
+		foreach ($xml->channel->item as $item)
+		{
 
-			foreach ($articles as $article) {
-				if ($article->title == $item->title) {
-					$duplicate = TRUE;
+			foreach ($articles as $article)
+			{
+				if ($article->title == $item->title)
+				{
+					$duplicate = true;
 				}
 			}
 
-			$creator                = $item->children('dc', TRUE);
+			$creator                = $item->children('dc', true);
 			$date                   = JFactory::getDate($item->pubDate);
 			$data                   = new stdClass();
-			$data->id               = NULL;
+			$data->id               = null;
 			$data->title            = $db->getEscaped($item->title);
 			$data->alias            = JFilterOutput::stringURLSafe($item->title);
 			$data->introtext        = $item->description . ' <p><a href="' . $item->link . '">Permalink</a></p>';
@@ -196,17 +222,20 @@ class plgSystemRss2article extends JPlugin {
 			$data->created          = $date->toMySQL();
 			$data->created_by_alias = $db->getEscaped($creator);
 			$data->state            = '1';
-			if ($secId) {
+			if ($secId)
+			{
 				$data->sectionid = $secId;
 			}
 
-			if ($duplicate != TRUE) {
+			if ($duplicate != true)
+			{
 				$db->insertObject('#__content', $data, 'id');
 			}
 		}
 	}
 
-	function logEvent() {
+	function logEvent()
+	{
 
 		$db    = JFactory::getDbo();
 		$query = "CREATE TABLE IF NOT EXISTS " . $db->nameQuote('#__rss2article') . "
