@@ -192,6 +192,8 @@ class plgSystemRss2article extends JPlugin
 	function saveItems($xml, $catId, $secId = null)
 	{
 
+		$duplicate = null;
+
 		$db    = JFactory::getDBO();
 		$query = "SELECT title
 				  FROM #__content
